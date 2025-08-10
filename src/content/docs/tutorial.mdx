@@ -1,0 +1,87 @@
+---
+title: Tutorial
+description: Make a prefab game
+---
+
+In this tutorial, we'll make a game that can be included as a prefab inside any VRChat world.
+
+TODO: insert demo video
+
+## Prerequisites
+
+This tutorial assumes you have a basic understanding of VRChat world building, Unity, and UdonSharp.
+
+TODO link to tutorials for these things.
+
+## Setting up the Template
+
+import { Steps } from "@astrojs/starlight/components";
+
+<Steps>
+
+1. Download [this zip file](TODO).
+
+2. Extract the contents to a folder on your computer.
+
+3. Open the Vrchat Creator Companion and import the extracted folder as an existing project.
+
+4. Open the project in Unity. A bunch of stuff will download, and the Domain will be Reloaded(tm).
+
+5. While you're waiting for the Domain to reload, move on to the next section.
+
+</Steps>
+
+## Inspect the Project Structure
+
+Check out the project structure in your file browser. It looks like this:
+
+import { FileTree } from "@astrojs/starlight/components";
+
+<FileTree>
+
+- Assets
+  - nothing it's empty!
+- Packages
+  - party.vrg.jam.example
+    - manifest.json
+    - Runtime
+      - ExampleGame.prefab
+    - SamplClick on the manifest.json file in the Assets/Packages/party.vrg.jam.example folder and look at the inspector:es
+      - ExampleScene.unity
+
+</FileTree>
+
+If you've made VRChat worlds before, this will look weird! That's okay, it's supposed to be like that.
+
+Once the domain reloads and unity lets you interact with it again, check out the structure of the project in the editor:
+
+TODO image
+
+The Packages folder has a "vrg game jam example package" in it, but the `party.vrg.jam.example` is gone. Plus there's
+a bunch of other stuff there.
+
+## Customize the Package Metadata
+
+Click on the `manifest.json` file in the `Assets/Packages/party.vrg.jam.example` folder and look at the inspector:
+
+TODO image
+
+Edit the `name`, `displayName`, and `description` fields to something:
+
+TODO image edited
+
+Now rename the `party.vrg.jam.example` folder to something else, like `party.vrg.jam.my-awesome-game`.
+
+Now you have a package of your very own.
+
+## Inspect the Example Scene
+
+In the Samples folder, open the `ExampleScene.unity` file. This is a pretty standard VRChat world scene:
+
+TODO image
+
+There is a 20x20x20 cube for the limits of the your jam submission.
+
+## Create a new MugiGame
+
+Right click the scene and add GameObject > Space.Hiina.Mugi > MugiGame. You'll see a

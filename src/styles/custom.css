@@ -1,0 +1,19 @@
+:root {
+  --sl-font-system: "Times New Roman", serif;
+}
+
+:root[data-theme="dark"] {
+  --sl-color-bg-sidebar: transparent;
+  --sl-color-black: black;
+  --sl-color-bg-nav: var(--sl-color-black);
+
+  body {
+    background: url(/bgreenplates4.gif);
+  }
+}
+:root[data-theme="light"] {
+  --sl-color-bg-sidebar: transparent;
+  body {
+    background: url(/bgfrenchfeathers.jpeg);
+  }
+}
