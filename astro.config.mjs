@@ -21,7 +21,8 @@ export default defineConfig({
         },
       ],
       sidebar: [
-        "tutorial",
+        "getting-started",
+        "jam-info",
         {
           label: "Guides",
           autogenerate: { directory: "guides" },
@@ -34,6 +35,7 @@ export default defineConfig({
           label: "Reference",
           autogenerate: { directory: "reference" },
         },
+        "resources",
         "contact",
       ],
     }),
