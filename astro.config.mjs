@@ -23,17 +23,11 @@ export default defineConfig({
       sidebar: [
         "getting-started",
         "jam-info",
+        "rules",
+        "mugi",
         {
           label: "Guides",
           autogenerate: { directory: "guides" },
-        },
-        {
-          label: "Concepts",
-          autogenerate: { directory: "concepts" },
-        },
-        {
-          label: "Reference",
-          autogenerate: { directory: "reference" },
         },
         "resources",
         "contact",
