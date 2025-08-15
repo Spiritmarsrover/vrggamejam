@@ -3,87 +3,299 @@ title: Tutorial
 description: Make a prefab game
 sidebar:
   order: 1
+prev: false
+next: false
 ---
-
-In this tutorial, we'll make a game that can be included as a prefab inside any VRChat world.
-
-TODO: insert demo video
-
-## Prerequisites
-
-This tutorial assumes you have a basic understanding of VRChat world building, Unity, and UdonSharp.
-
-TODO link to tutorials for these things.
-
-## Setting up the Template
 
 import { Steps } from "@astrojs/starlight/components";
 
+In this tutorial, we'll make a simple game that can be included as a prefab inside any VRChat world.
+
+:::tip
+Don't have any game ideas yet? Don't worry, this tutorial requires zero creativity to follow, only your attention. After going through the steps, you might find some inspiration!
+:::
+
+## Prerequisites
+
+This tutorial assumes you have [VCC (VRChat Creator Companion)](https://vcc.docs.vrchat.com/) and Unity setup already, and basic familiarity with both. If you don't, do VRChat's own [Creating Your First World](https://creators.vrchat.com/worlds/creating-your-first-world) tutorial first.
+
+## Step 1. Setup
+
 <Steps>
 
-1. Download [this zip file](TODO).
-
-2. Extract the contents to a folder on your computer.
-
-3. Open the Vrchat Creator Companion and import the extracted folder as an existing project.
-
-4. Open the project in Unity. A bunch of stuff will download, and the Domain will be Reloaded(tm).
-
-5. While you're waiting for the Domain to reload, move on to the next section.
+1. [Download the template project as a ZIP](https://github.com/hiinaspace/vrgjam2025-template/archive/refs/heads/main.zip) from GitHub and extract it somewhere on your computer.
+2. Open your web browser and go to https://hiinaspace.github.io/vrgjam2025-vpm-repo/
+3. Click the "Add to VCC" button, which should open VCC (VRChat Creator Companion).
+4. Add the extracted template folder as a project.
+5. Click the 'Manage Project' Button on the new project.
+6. Observe that the `Mugi (Mini Udon Game Interface)` and `/vrg/ Game Jam 2025 Submission Helper` are in the list under `Manage Packages`. (You might get a prompt to download these if they're not there.)
+7. Open the project in Unity using the button in VCC.
+8. Wait warmly while Unity loads everything.
 
 </Steps>
 
-## Inspect the Project Structure
+### Investigate the project structure
 
-Check out the project structure in your file browser. It looks like this:
+While it's loading, check out the project structure in your file browser. The important parts look like:
 
 import { FileTree } from "@astrojs/starlight/components";
 
 <FileTree>
 
 - Assets
-  - nothing it's empty!
+  - TextMeshPro
+  - ... no scenes
 - Packages
-  - party.vrg.jam.example
+  - com.example.jamgame
     - manifest.json
     - Runtime
-      - ExampleGame.prefab
+      - asmdef.asmdef
+      - asmdef.asset
     - Samples
-      - ExampleScene.unity
+      - GameTestWorld.unity
+      - ...
+  - ...
 
 </FileTree>
 
-If you've made VRChat worlds before, this will look weird! That's okay, it's supposed to be like that.
+Notice that there aren't any Scenes in the Assets/ folder, but there is in the `Packages/com.example.jamgame/Samples` folder.
 
-Once the domain reloads and unity lets you interact with it again, check out the structure of the project in the editor:
+:::note
+If you look in the Console of Unity and see a bunch of errors, don't despair. The errors are usually spurious. Press the "Clear" button in the upper-left of the console to hopefully make 'em go away.
+:::
 
-TODO image
+### Step 2: Rename Your Package
 
-The Packages folder has a "vrg game jam example package" in it, but the `party.vrg.jam.example` is gone. Plus there's
-a bunch of other stuff there.
+<Steps>
 
-## Customize the Package Metadata
+1. In Unity's browser, navigate to `Packages/!/vrg/ Template Package'`.
+2. Right click the folder and "Show in Explorer"
+3. In Explorer, notice that the folder is called `com.example.jamgame` instead.
+4. Right-click the folder and rename it to `com.example.awesomegame` so don't conflict with other packages using the same template.
+5. Open the `package.json` file inside this folder.
+6. Update the package metadata `name` and `displayName` fields (leaving the rest of the fields as they are):
+   ```json title=package.json ins=/com.example.awesomegame|Awesome VR Game/
+   {
+       "name": "com.example.awesomegame",
+       "displayName": "Awesome VR Game",
+       ...
+   }
+   ```
+7. Back in Unity's Project browser, notice that your package now shows up as `Packages/Awesome VR Game`. The `displayName` field from the metadata is what unity displays, while Explorer shows the folder name: `com.example.awesomegame`.
 
-Click on the `manifest.json` file in the `Assets/Packages/party.vrg.jam.example` folder and look at the inspector:
+</Steps>
 
-TODO image
+### Step 3: Create a new MugiGame-based Prefab
 
-Edit the `name`, `displayName`, and `description` fields to something:
+<Steps>
 
-TODO image edited
+1. In the Project window, navigate to `Packages/Awesome VR Game/Runtime`
+2. Right Click in the window and click `Create -> Mugi -> Mugi Game Variant`.
+3. Save the new prefab as `MyAwesomeGame.prefab`.
+2. Double-click `MyAwesomeGame.prefab` to open it in prefab editing mode
+3. This prefab contains the MugiGame framework components at the root.
 
-Now rename the `party.vrg.jam.example` folder to something else, like `party.vrg.jam.my-awesome-game`.
+</Steps>
 
-Now you have a package of your very own.
+### Step 4: Add a Capsule
 
-## Inspect the Example Scene
+<Steps>
 
-In the Samples folder, open the `ExampleScene.unity` file. This is a pretty standard VRChat world scene:
+1. In the prefab hierarchy, right-click and create `3D Object > Capsule`
+2. Name it "ScoreButton"
+3. Position it at the center of the scene (0, 0, 0)
 
-TODO image
+</Steps>
 
-There is a 20x20x20 cube for the limits of the your jam submission.
+### Step 5: Create the CapsuleClicker Script
 
-## Create a new MugiGame
+Now we'll add some behavior.
 
-Right click the scene and add GameObject > Space.Hiina.Mugi > MugiGame. You'll see a
+<Steps>
+
+1. In the Project window, navigate to `Packages/Awesome VR Game/Runtime`
+2. Right-click and create `Create > U# Script`
+3. Name it `CapsuleClicker`
+4. Open the script. The default script looks like:
+    ```csharp title=CapsuleClicker.cs
+    using UdonSharp;
+    using UnityEngine;
+    using VRC.SDKBase;
+    using VRC.Udon;
+
+    public class CapsuleClicker : UdonSharpBehaviour
+    {
+        void Start()
+        {
+
+        }
+    }
+    ```
+
+</Steps>
+
+#### Alternate Creation Method
+
+When you do `Create > U# Script`, if you get an error saying "Couldn't create Asset", try this:
+
+<Steps>
+1. In the Project window, navigate to `Assets/` (not the Package)
+2. Right-click and create `Create > U# Script`
+3. Name it `CapsuleClicker`.
+4. Move both the new `CapsuleClicker.cs` and `CapsuleClicker.asset` into your `Packages/Awesome VR Game/Runtime` directory.
+</Steps>
+
+I dunno why this occurs sometimes.
+
+### Step 6: Implementing the script
+
+First, let's add a namespace to the script, so it won't conflict with other packages:
+
+```csharp title=CapsuleClicker.cs ins={5-6,14}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+namespace Com.Example.AwesomeGame
+{
+    public class CapsuleClicker : UdonSharpBehaviour
+    {
+        void Start()
+        {
+
+        }
+    }
+}
+```
+
+Then we'll add a reference to the MugiGame behavior itself:
+
+```csharp title=CapsuleClicker.cs ins={4,10}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using Space.Hiina.Mugi;
+
+namespace Com.Example.AwesomeGame
+{
+    public class CapsuleClicker : UdonSharpBehaviour
+    {
+        public MugiGame mugiGame;
+
+        void Start()
+        {
+
+        }
+    }
+}
+```
+
+Then finally we'll implement the Interact method, which gets called when you click on a thing in Udon:
+
+```csharp title=CapsuleClicker.cs ins={16-27}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+namespace Com.Example.AwesomeGame
+{
+    public class CapsuleClicker : UdonSharpBehaviour
+    {
+        public MugiGame mugiGame;
+
+        void Start()
+        {
+
+        }
+
+        public override void Interact()
+        {
+            VRCPlayerApi localPlayer = Networking.LocalPlayer;
+            if (mugiGame != null && localPlayer != null)
+            {
+                if (mugiGame.gameState == MugiGame.STATE_RUNNING &&
+                    mugiGame.IsPlayerInGame(localPlayer))
+                {
+                    mugiGame.IncrementScore(localPlayer.playerId, 1);
+                }
+            }
+        }
+    }
+}
+```
+
+This script makes it so when you click the capsule and you're in the game, your score goes up. Don't worry too much about the details for now.
+
+### Step 7: Attach the Script and Reference
+
+<Steps>
+1. Select the "ScoreButton" capsule in the prefab hierarchy
+2. Click "Add Component" and add your `CapsuleClicker` script
+3. In the script component, drag the root `MyAwesomeGame` object into the "Mugi Game" field.
+</Steps>
+
+### Step 8: Configure Game Settings
+
+<Steps>
+1. Select the root `MyAwesomeGame` object in the prefab hierarchy
+2. In the `MugiGame` component, configure:
+   - **Game Time Limit**: 30 seconds (default 300)
+   - **Min Players**: 1 (default 2)
+</Steps>
+
+We change these so when we're testing, we don't have to figure out multiplayer or wait 5 minutes for the game to end.
+
+### Step 9: Add your prefab to the Test Scene
+
+<Steps>
+1. Navigate to `Packages/My Awesome Game/Samples`
+2. Open the `GameTestWorld.unity` scene.
+3. Navigate to the `Packages/My Awesome Game/Runtime` in the browser.
+4. Drag your `MyAwesomeGame` prefab into the scene.
+</Steps>
+
+You should see the scoreboard and your capsule visible now. Move it to (0,0,0) if it's not.
+
+### Step 10: Test Your Game in Play Mode
+
+<Steps>
+1. Enter Play Mode in Unity
+2. Your capsule should be visible in the scene
+3. Join the game using the lobby UI.
+4. Start the game using the lobby UI.
+5. Click the capsule to increment your score
+6. Once the game ends, see your final score on the scoreboard.
+</Steps>
+
+### Step 11: Submit Your Game
+
+<Steps>
+1. Open the VRG Game Jam Submission Helper: `Menu > vrg Game Jam 2025 > Submission Helper`
+2. Your package should appear automatically in the dropdown
+3. Click "Refresh Validation" to check for issues. There may be some. You can ignore those for now (WIP)
+4. Accept the submission agreement.
+5. Click "Export as ZIP" to create your submission file.
+</Steps>
+
+### Step 12: Upload and Test in VRChat (Optional)
+
+<Steps>
+1. Open the VRChat SDK window from VRChat SDK -> Show Control Panel.
+2. Name the world "Awesome game test"
+3. Click "Capture in Scene" to make a thumbnail image.
+4. Click the "Build & Publish" button.
+5. Test the world with your friends (and/or alt accounts)
+</Steps>
+
+You now have a working game, a demo world, and a file other people can use to add your game to their world!
+
+## Next Steps
+
+Check out the [Mugi docs](/mugi) to see what else you can do with the framework. Also check out the [Resources](/resources) for more useful tips when making your real game.
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+    <LinkCard title="Mugi Docs" href="/mugi" />
+    <LinkCard title="Resources" href="/resources" />
+</CardGrid>

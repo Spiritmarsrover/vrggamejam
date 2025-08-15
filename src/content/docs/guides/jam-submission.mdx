@@ -7,35 +7,68 @@ This guide shows you how to submit a game to the /vrg/ game jam.
 
 ## Prerequisites
 
-You'll need a package containing your game.
+You'll need a package containing your game. If your game isn't in a package yet, follow [VRChat's guide on how to migrate Assets to a package](https://vcc.docs.vrchat.com/guides/convert-unitypackage).
 
-If your game isn't in a package yet, follow VRChat's guide on how to migrate a prefab to a package.
+Your package will also need an "entry point" prefab, i.e. the prefab that you expect users to drag into their world to use your prefab.
 
-## Adding /vrg/ game jam submission helper
+:::tip
+If you don't have a project yet, the [tutorial](/tutorial) will walk you through this with a simple example game (and package). And even if you do have an existing package, the tutorial might be useful to understand the flow with a safe throwaway project.
+:::
 
-If you don't already have it. TODO
-
-## Submitting Your Game
+## Step 1. Add the /vrg/ Jam Submission Helper Package
 
 import { Steps } from "@astrojs/starlight/components";
 
 <Steps>
+1. Open your web browser and go to https://hiinaspace.github.io/vrgjam2025-vpm-repo/
+3. Click the "Add to VCC" button, which should open VCC (VRChat Creator Companion) or ALCOM if you use that.
+5. Click the 'Manage Project' Button on your project.
+6. Install the `/vrg/ Game Jam 2025 Submission Helper` from the list.
+</Steps>
 
-1. Open the Unity project for your game.
+## Step 2. Modify your package metadata
 
-2. Open the vrg submission editor window from the Menu:
-   TODO image
+<Steps>
+1. Open your package's `package.json` file in a text editor.
+2. Update the package metadata to add an `entryPoint` field which points to your root prefab
+    ```json title=package.json ins={9}
+    {
+        "name": "...",
+        "displayName": "...",
+        "description": "...",
+        "author": {
+            "name": "...",
+            "email": "..."
+        },
+        "prefabEntryPoint": "Runtime/YourEntryPoint.prefab"
+    }
+    ```
+</Steps>
 
-3. The window will try to find your game package automatically. If it doesn't, you can select it manually by clicking the "Select Package" button.
+:::caution
+If you don't add this field, the helper won't be able to find your package.
+:::
 
-4. If there are any issues with your package, the window will show them. Fix the issues before proceeding.
+## Step 3. (Pretend To) Submit Your Game
 
-5. Read and agree to the terms of the jam submission.
+<Steps>
+1. Open the VRG Game Jam Submission Helper: `Menu > vrg Game Jam 2025 > Submission Helper`
+2. Your package should appear automatically in the dropdown
+3. Click "Refresh Validation" to check for issues. There may be some. You can ignore those for now (WIP).
+4. Accept the submission agreement.
+5. Click "Export as ZIP" to create your submission file.
+</Steps>
 
-6. Click the submit button.
+You'll notice the "Submit" button is grayed out. We're working on it!
 
-7. If the submission is successful, you'll see a confirmation message.
+## Step 4. Wait warmly for us to update the helper
 
+Once it's updated, you'll be able to update the helper fairly easily:
+
+<Steps>
+1. Click "Manage Project" for your project in VCC / ALCOM.
+2. You should see a new version of the /vrg/ Jam Submission Helper available.
+3. Click the button to upgrade.
 </Steps>
 
 ## Submitting updated versions
