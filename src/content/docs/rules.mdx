@@ -1,0 +1,103 @@
+---
+title: Jam Rules
+description: Rules for the /vrg/ Game Jam 2025
+---
+
+Here are the submission rules and guidelines for the /vrg/ Game Jam 2025. For more general info, see [Jam Info](/jam-info).
+
+:::note
+The golden rule is **We have to somehow include your submission in the Exhibition World in VRChat**. If your submission isn't conforming but is otherwise something cool and relevant, shitpost about it and we'll figure out what we can do.
+:::
+
+## Requirements
+
+Your submission MUST:
+
+- Be built using the VRChat Worlds SDK (Udon).
+- Have an obvious "entry point" prefab that we can include in our scene.
+- Be less than 50MB zipped.
+- Fit inside a 20x20x20 cube (unity units)
+- Be postable on blue boards (SFW)
+- Be performant enough to be included in a world with other stuff in it,
+- Be primarily your (or your team's) original work.
+- Have the license to use any 3rd party assets/code included in your submission.
+- Include some sort of contact info with your submission; at minimum VRChat username(s).
+
+### License
+
+By submitting your game to the jam, you give us permission to include your prefab in the [Jam Exhibition](/jam-info#exhibition) world and event, which will be private/unlisted with Groups+ instances posted to the thread.
+
+If we end up publishing some version of the Exhibition as a public VRChat world after the event, we'll contact all submitters to ask if this is okay first.
+
+### Multiple Submissions
+
+You're allowed to make multiple submissions that meet the requirements, up to a reasonable limit.
+
+### Team Submissions
+
+You can work in teams. Include your team info in with the submission somehow (either in the metadata or on a Canvas UI) so everyone gets credit.
+
+## Guidelines
+
+Ideally, your prefab should:
+
+- Vaguely fit the theme of "Party Minigame".
+- Be contained in a VRChat Package Manger (VPM) package, submitted using the [Submission Helper](/guides/jam-submission).
+  - The template world provided for the [tutorial](/tutorial) will set this up for you.
+  - TODO link template setup guide
+- Still work if the entire prefab gameobject hierarchy gets deactivated/reactivated.
+  - The [Optimization Guide](/guides/optimization) has some advice for how to ensure this.
+- Include the original UdonSharp scripts in your prefab.
+  - Theoretically you can include just the compiled .assets, but something in the Udon toolchain will probably break, and we're much less likely to be able to fix stuff without the source.
+- Not mess with players or stuff outside the prefab's area
+  - i.e. don't teleport random people in the instance around, flash screen-space shaders on everyone, blast particles everywhere, etc.
+  - You can do whatever you want with players in your prefab/game, but make sure any effects aren't permanent.
+  - Tip: scaling players down is a good way to circumvent the 20x20x20 space limit, if you need more.
+
+### Game Submissions
+
+If your submission is a game, it should ideally:
+
+- Take less than 5 minutes to play.
+- Support multiplayer.
+- Have some way of determining winners and losers.
+- Include instructions on how to play your game (e.g. as text on a canvas).
+  - TODO we'll have some way to show a (non-synced) video to explain your game too.
+
+:::note
+The [Mugi framework](/reference/mugi) supports these guidelines nicely with a multiplayer lobby system, scoring, and time limit.
+:::
+
+### Non-game Submissions
+
+If you really can't be arsed to make your game into a prefab, we'll also take "booths" for your actual submission:
+
+- Include a portal to your world or a link to how to play your game (itch.io or whatever)
+- Add whatever other props/advertising material you want.
+- Use the same [jam submission helper](/guides/jam-submission) to submit your "booth".
+
+While you can use the full 20x20x20m space for your non-game submission, we may scale them down if we get a lot of these.
+
+### Non-package submissions
+
+If you can't/won't use the [jam submission helper](/guides/jam-submission), upload a zip or unitypackage or jpeg or whatever to catbox and post it in the thread. We'll try to include it, but no promises.
+
+## Deadline
+
+"Completed" submissions are due September 1st, to give us time for final integration and testing. We'll accept small bugfixes/polish changes up to September 5th (day before the Exhibition), but we'll reject any major changes and use the last known working version instead.
+
+### WIP Submissions
+
+We strongly recommend submitting WIPs early and often. We'll try to integrate the latest versions into test build of the Exhibition world as often as we can, and provide feedback (to your contact information) if anything breaks.
+
+TODO we'll also have some way you can try out test builds of the Exhibition yourself, details TBD
+
+## FAQ
+
+### What if something's broken?
+
+We'll try our best to fix your prefab ourselves, including contacting you to discuss changes. If we can't get it to work entirely, at we'll remove all your udon scripts and try to leave your assets intact but inert. At worst, we'll replace your prefab with a screenshot of its most working state and say we tried.
+
+### What if it's not finished by the deadline?
+
+Submit what you've got, and we'll still try to include some version of it in the Exhibition (probably with scripts removed). It'll still be nice to see some form of your work.

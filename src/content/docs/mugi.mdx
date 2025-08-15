@@ -1,0 +1,125 @@
+---
+title: Mini Udon Game Interface (Mugi)
+description: Mugi Reference
+---
+
+Mugi is a framework for creating games as prefabs in VRChat worlds. It gives you a robust implementation of:
+
+- Lobby UI and management for both Free-for-all and Teams
+- Game Lifecycle (Start/Stop/Reset)
+- Scoring with Scoreboard UI
+- Game Clock/Timelimit
+- Disable/Enable behavior
+
+i.e. all the usual things you'd expect out of a game prefab.
+
+Mugi also happens to check most of the guidelines for the [Jam Rules](/rules). However, you're not required to use it. And if you want to make a game without submitting to the Jam, feel free to use Mugi as well. It's fully free and open source (WTFPL).
+
+## Demo Video
+
+TODO
+
+## How to Use
+
+:::note
+Also see the [Tutorial](/tutorial) for a more practical/hands-on intro.
+:::
+
+### Installation
+
+1. Install the [Vrchat Creator Companion (VCC)](https://vcc.docs.vrchat.com/) or [ALCOM](https://vrc-get.anatawa12.com/alcom/) first.
+2. Visit https://hiinaspace.github.io/vrgjam2025-vpm-repo/ and press the "Add to VCC" button.
+3. Click the "Manage" button for your project, and install the "Mugi (Mini Udon Game Interface)" package.
+
+### Basic Usage
+
+1. Right click somewhere in either your scene hierarchy or the Unity asset browser, and choose Create -> Mugi-based Game. This'll create a new prefab for you to build your game inside, along with a LobbyUI and Scoreboard (UI Canvasses).
+2. Add assets for your game as children of the prefab.
+3. Configure min/max players and teams in the MugiController.
+4. Set up callback UdonBehaviours to respond to game events
+5. Use `MugiController.IncrementScore()` and other methods in your game logic.
+
+## Architecture
+
+### MugiGame
+
+An UdonSharpBehavior on root gameobject of your prefab. It runs the show essentially. Other parts of your game will have a reference to it in order to get the active players in the game, get the current game state, and manipulate player scores.
+
+The default MugiGame prefab includes the MugiLobbyUI and MugiScoreboard as children. You'll put any other gameobjects you need for your game alongside them.
+
+MugiGame will pause completely if its GameObject is turned off, and will resume if it the GameObject is turned back on, so you can add toggles for games built on Mugi. the toggle state isn't synced internally, so it's possible for non-players to turn off a MugiGame as well without affecting others. (If you don't want this behavior though, you'll have to implement a synced toggle yourself).
+
+### Lobby UI
+
+MugiLobbyUI is a world-space 2d Canvas UI that gives you the usual lobby behavior, i.e.
+
+- Players can click the Join button to join the lobby, and everyone in the instance can see the current players.
+- The first player to join is the "Game Master" and can start the game (and stop it early).
+- If teams are enabled, players can join/switch/leave teams freely.
+
+MugiLobbyUI is optional; MugiGame supports callbacks to add/remove players itself if you want to build your own lobby.
+
+### Scoreboard
+
+MugiScoreboard is another world-space 2d Canvas UI that shows the current scores of all players in a game in progress, or the last known scores and ranks of players from a game that's ended.
+
+MugiScoreboard is similarly optional, if you want to build your own way to show player scores and winners.
+
+### Game Lifecycle
+
+TODO mermaid
+States: Lobby → Countdown → Running → Ending/Aborted → (back to Lobby)
+
+### Scoring
+
+MugiGame keeps track of a numeric score per player. The score is an arbitrary integer (can be negative).
+
+If enabled teams don't have scores themselves. The default MugiScoreboard implements team scores/ranks by simply summing the each player's score within it.
+
+## API Reference
+
+### Player Info
+
+```cs
+
+/**
+*
+*/
+bool MugiGame.IsPlayerInGame(VRCPlayerAPI player);
+```
+
+TODO
+
+
+### Changing Player Scores
+
+```cs
+
+/**
+*
+*/
+void MugiGame.IncrementScore(VRCPlayerAPI player, int increment);
+```
+
+### Callback System
+
+Mugi can call public methods on arbitrary UdonBehaviors at different points of the game lifecycle:
+
+- `OnMugiCountdown` - Game starting countdown
+- `OnMugiStart` - Game begins
+- `OnMugiEnd` - Game finished
+- `OnMugiPlayerJoin` - Player joins
+- `OnMugiPlayerLeave` - Player leaves
+- `OnMugiTimeWarning` - Time running out
+
+You can use these to e.g. turn on/off behaviors that are expensive.
+
+To register a callback, add the UdonBehavior to the fields on the MugiGame behavior.
+
+## I scrolled all the way through your dumb readme, where da anime grills at?
+
+Fine, here's my favorite 'mugi pic:
+
+![anime grill](../../assets/moogs.jpg)
+
+Source: https://danbooru.donmai.us/posts/564622
