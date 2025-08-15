@@ -25,9 +25,11 @@ This tutorial assumes you have [VCC (VRChat Creator Companion)](https://vcc.docs
 
 1. [Download the template project as a ZIP](https://github.com/hiinaspace/vrgjam2025-template/archive/refs/heads/main.zip) from GitHub and extract it somewhere on your computer.
 2. Open your web browser and go to https://hiinaspace.github.io/vrgjam2025-vpm-repo/
-3. Click the "Add to VCC" button, which should open VCC (VRChat Creator Companion).
+3. Click the "Add to VCC" button at the top, which should open VCC (VRChat Creator Companion):
+   ![screenshot of the VPM Listing page with the button highlighted](./tutorial-img/VPMlisting.png)
+   This ensures you can get both packages and see when they update.
 4. Add the extracted template folder as a project.
-5. Click the 'Manage Project' Button on the new project.
+5. Click the 'Manage Project' Button on the new project. If you see a prompt to "resolve dependencies", accept it (this'll download everything for you).
 6. Observe that the `Mugi (Mini Udon Game Interface)` and `/vrg/ Game Jam 2025 Submission Helper` are in the list under `Manage Packages`. (You might get a prompt to download these if they're not there.)
 7. Open the project in Unity using the button in VCC.
 8. Wait warmly while Unity loads everything.
@@ -43,8 +45,7 @@ import { FileTree } from "@astrojs/starlight/components";
 <FileTree>
 
 - Assets
-  - TextMeshPro
-  - ... no scenes
+  - ...
 - Packages
   - com.example.jamgame
     - manifest.json
@@ -58,7 +59,7 @@ import { FileTree } from "@astrojs/starlight/components";
 
 </FileTree>
 
-Notice that there aren't any Scenes in the Assets/ folder, but there is in the `Packages/com.example.jamgame/Samples` folder.
+Unlike a full VRChat world, we're going to do almost all of our work in the `Packages/com.example.jamgame` folder rather `Assets/`. This is because when somebody includes your game in their world, they'll also see your package as separate from the rest of the their assets.
 
 :::note
 If you look in the Console of Unity and see a bunch of errors, don't despair. The errors are usually spurious. Press the "Clear" button in the upper-left of the console to hopefully make 'em go away.
@@ -113,10 +114,12 @@ Now we'll add some behavior.
 
 <Steps>
 
-1. In the Project window, navigate to `Packages/Awesome VR Game/Runtime`
+1. In the Project window, navigate to `Assets/` (not the Package)
 2. Right-click and create `Create > U# Script`
-3. Name it `CapsuleClicker`
-4. Open the script. The default script looks like:
+3. Name it `CapsuleClicker`.
+4. In the Project window, see that it created a `CapsuleClicker.cs` and a `CapsuleClicker.asset` beside it (you may see two different icons instead of extensions).
+4. Move both the new `CapsuleClicker.cs` and `CapsuleClicker.asset` into your `Packages/Awesome VR Game/Runtime` directory.
+5. Open the script. The default script looks like:
     ```csharp title=CapsuleClicker.cs
     using UdonSharp;
     using UnityEngine;
@@ -134,18 +137,20 @@ Now we'll add some behavior.
 
 </Steps>
 
-### Alternate Creation Method
+:::note[Aside]{icon="puzzle"}
+<details>
+<summary>Why do you have to create the U# Script in `Assets` and move it?</summary>
 
-When you do `Create > U# Script`, if you get an error saying "Couldn't create Asset", try this:
+If try to create the script directly in your package's Runtime directory, it'll break with an error like:
 
-<Steps>
-1. In the Project window, navigate to `Assets/` (not the Package)
-2. Right-click and create `Create > U# Script`
-3. Name it `CapsuleClicker`.
-4. Move both the new `CapsuleClicker.cs` and `CapsuleClicker.asset` into your `Packages/Awesome VR Game/Runtime` directory.
-</Steps>
+```text wrap
+[UdonSharp] Script 'Packages/com.example.awesomegame/Runtime/CapsuleClicker.cs' does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+```
 
-I dunno why this occurs sometimes.
+This is some sort of bug in UdonSharp.
+
+</details>
+:::
 
 ## Step 6: Implementing the script
 
@@ -192,10 +197,11 @@ namespace Com.Example.AwesomeGame
 
 Then finally we'll implement the Interact method, which gets called when you click on a thing in Udon:
 
-```csharp title=CapsuleClicker.cs ins={16-27}
+```csharp title=CapsuleClicker.cs ins={17-25}
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+using Space.Hiina.Mugi;
 
 namespace Com.Example.AwesomeGame
 {
@@ -211,20 +217,17 @@ namespace Com.Example.AwesomeGame
         public override void Interact()
         {
             VRCPlayerApi localPlayer = Networking.LocalPlayer;
-            if (mugiGame != null && localPlayer != null)
+            if (mugiGame.gameState == MugiGame.STATE_RUNNING &&
+                mugiGame.IsPlayerInGame(localPlayer))
             {
-                if (mugiGame.gameState == MugiGame.STATE_RUNNING &&
-                    mugiGame.IsPlayerInGame(localPlayer))
-                {
-                    mugiGame.IncrementScore(localPlayer.playerId, 1);
-                }
+                mugiGame.IncrementScore(localPlayer.playerId, 1);
             }
         }
     }
 }
 ```
 
-This script makes it so when you click the capsule and you're in the game, your score goes up. Don't worry too much about the details for now.
+Now, when you click the capsule and you're in the game, your score goes up. Don't worry too much about the details for now.
 
 ## Step 7: Attach the Script and Reference
 
@@ -241,6 +244,7 @@ This script makes it so when you click the capsule and you're in the game, your 
 2. In the `MugiGame` component, configure:
    - **Game Time Limit**: 30 seconds (default 300)
    - **Min Players**: 1 (default 2)
+3. Save the prefab.
 </Steps>
 
 We change these so when we're testing, we don't have to figure out multiplayer or wait 5 minutes for the game to end.
@@ -270,12 +274,17 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 ## Step 11: Submit Your Game
 
 <Steps>
-1. Open the VRG Game Jam Submission Helper: `Menu > vrg Game Jam 2025 > Submission Helper`
-2. Your package should appear automatically in the dropdown
+1. Open the VRG Game Jam Submission Helper from menu at the top of the Unity window: `vrg Game Jam 2025 > Submission Helper`
+2. The Helper window should automatically detect your package.
 3. Click "Refresh Validation" to check for issues. There may be some. You can ignore those for now (WIP)
 4. Accept the submission agreement.
 5. Click "Export as ZIP" to create your submission file.
+6. Save the file somewhere on your computer.
 </Steps>
+
+:::note
+The actual submission server isn't quite ready, so you just get a .zip for now.
+:::
 
 ## Step 12: Upload and Test in VRChat (Optional)
 
