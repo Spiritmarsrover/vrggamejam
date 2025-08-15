@@ -315,12 +315,20 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 ## Step 11: Submit Your Game
 
 <Steps>
-1. Open the VRG Game Jam Submission Helper from menu at the top of the Unity window: `vrg Game Jam 2025 > Submission Helper`
-2. The Helper window should automatically detect your package.
-3. Click "Refresh Validation" to check for issues. There may be some. You can ignore those for now (WIP)
-4. Accept the submission agreement.
-5. Click "Export as ZIP" to create your submission file.
-6. Save the file somewhere on your computer.
+1. Open your package's `package.json` file in a text editor.
+2. Change the `entryPoint` field to refer to your root prefab:
+    ```json title=package.json ins="Runtime/MyAwesomeGame.prefab"
+    {
+        ...,
+        "prefabEntryPoint": "Runtime/MyAwesomeGame.prefab"
+    }
+    ```
+3. Open the VRG Game Jam Submission Helper from menu at the top of the Unity window: `vrg Game Jam 2025 > Submission Helper`
+4. The Helper window should automatically detect your package.
+5. Click "Refresh Validation" to check for issues. There may be some. You can ignore those for now (WIP)
+6. Accept the submission agreement.
+7. Click "Export as ZIP" to create your submission file.
+8. Save the file somewhere on your computer.
 </Steps>
 
 :::note
@@ -351,3 +359,9 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
     <LinkCard title="Mugi Docs" href="/mugi" />
     <LinkCard title="Resources" href="/resources" />
 </CardGrid>
+
+## Help! it didn't work!
+
+If you got stuck somewhere or a step doesn't make sense, post about it in the thread so we can try to fix both your problem and the tutorial.
+
+Unity, Udon, and really gamedev in general is unfortunately pretty haunted. While it's a total cope, sometimes deleting the entire project and trying the same steps again will fix things.
