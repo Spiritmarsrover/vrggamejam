@@ -141,13 +141,15 @@ Now we'll add some behavior.
 <details>
 <summary>Why do you have to create the U# Script in `Assets` and move it?</summary>
 
-If try to create the script directly in your package's Runtime directory, it'll break with an error like:
+If try to create the script directly in your package's Runtime directory, it'll break later with an error like:
 
 ```text wrap
 [UdonSharp] Script 'Packages/com.example.awesomegame/Runtime/CapsuleClicker.cs' does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
 ```
 
-This is some sort of bug in UdonSharp.
+in the Console.
+
+This is some sort of bug in UdonSharp. Creating scripts in `/Assets` first seems to work around it.
 
 </details>
 :::
