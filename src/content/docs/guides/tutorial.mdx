@@ -229,6 +229,42 @@ namespace Com.Example.AwesomeGame
 
 Now, when you click the capsule and you're in the game, your score goes up. Don't worry too much about the details for now.
 
+While we're here, we're also going to add some debug logging:
+
+```csharp title=CapsuleClicker.cs ins={19,24}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using Space.Hiina.Mugi;
+
+namespace Com.Example.AwesomeGame
+{
+    public class CapsuleClicker : UdonSharpBehaviour
+    {
+        public MugiGame mugiGame;
+
+        void Start()
+        {
+
+        }
+
+        public override void Interact()
+        {
+            Debug.Log("Capsule Clicked!");
+            VRCPlayerApi localPlayer = Networking.LocalPlayer;
+            if (mugiGame.gameState == MugiGame.STATE_RUNNING &&
+                mugiGame.IsPlayerInGame(localPlayer))
+            {
+                Debug.Log("Incrementing Score!");
+                mugiGame.IncrementScore(localPlayer.playerId, 1);
+            }
+        }
+    }
+}
+```
+
+Debug logging is good for you.
+
 ## Step 7: Attach the Script and Reference
 
 <Steps>
@@ -263,12 +299,15 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 ## Step 10: Test Your Game in Play Mode
 
 <Steps>
-1. Enter Play Mode in Unity
-2. Your capsule should be visible in the scene
-3. Join the game using the lobby UI.
-4. Start the game using the lobby UI.
-5. Click the capsule to increment your score
-6. Once the game ends, see your final score on the scoreboard.
+1. Enter Play Mode in Unity.
+2. In the Game window, dismiss the Client Sim UI.
+3. Observe your capsule and the UI provided by Mugi.
+4. Join the game using the lobby UI.
+5. Start the game using the lobby UI.
+6. Click the capsule to increment your score
+7. Look in the Console, and see the log messages that say "Capsule Clicked" and "Score Incremented".
+8. Once the game ends, see your final score on the scoreboard.
+9. Exit Play Mode.
 </Steps>
 
 ## Step 11: Submit Your Game
@@ -295,6 +334,8 @@ The actual submission server isn't quite ready, so you just get a .zip for now.
 4. Click the "Build & Publish" button.
 5. Test the world with your friends (and/or alt accounts)
 </Steps>
+
+## Reflection
 
 You now have a working game, a demo world, and a file other people can use to add your game to their world!
 
