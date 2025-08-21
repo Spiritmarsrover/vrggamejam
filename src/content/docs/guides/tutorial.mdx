@@ -86,7 +86,34 @@ If you look in the Console of Unity and see a bunch of errors, don't despair. Th
 
 </Steps>
 
-## Step 3: Create a new MugiGame-based Prefab
+## Step 3: Rename the Assembly Definition
+
+<Steps>
+
+1. In the Runtime folder of your package, notice the `com.example.jamgame` Assembly Definition file:
+    ![screenshot of the asmdef](tutorial-img/asmdef.png)
+    (in the file browser, its extension is `.asmdef`).
+2. Rename the file to `com.example.awesomegame` to match the overall package.
+3. In the inspector for the file, also rename it to `com.example.awesomegame`.
+   ![screenshot of the asmdef inspector](tutorial-img/asmdef-inspector.png)
+
+</Steps>
+
+:::note[Aside]{icon="puzzle"}
+<details>
+<summary>What's the Assembly Definition for? Why do you have to rename it in two places?</summary>
+
+Roughly, it keeps the code of your package isolated from the rest of the code in unity. It also interacts with the UdonSharp compiler in an odd way. If you don't rename it and make sure both the inspector name and the file name match, UdonSharp will break with an error like:
+
+```text wrap
+[UdonSharp] Script 'Packages/com.example.awesomegame/Runtime/CapsuleClicker.cs' does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+```
+
+I think this is a bug, but I can't tell for sure.
+</details>
+:::
+
+## Step 4: Create a new MugiGame-based Prefab
 
 <Steps>
 
@@ -98,7 +125,7 @@ If you look in the Console of Unity and see a bunch of errors, don't despair. Th
 
 </Steps>
 
-## Step 4: Add a Capsule
+## Step 5: Add a Capsule
 
 <Steps>
 
@@ -108,7 +135,7 @@ If you look in the Console of Unity and see a bunch of errors, don't despair. Th
 
 </Steps>
 
-## Step 5: Create the CapsuleClicker Script
+## Step 6: Create the CapsuleClicker Script
 
 Now we'll add some behavior.
 
@@ -141,20 +168,14 @@ Now we'll add some behavior.
 <details>
 <summary>Why do you have to create the U# Script in `Assets` and move it?</summary>
 
-If try to create the script directly in your package's Runtime directory, it'll break later with an error like:
+If try to create the script directly in your package's Runtime directory, it'll (sometimes) fail to create the extra UdonSharpProgramAsset alongside it (the thing with the same name and green logo).
 
-```text wrap
-[UdonSharp] Script 'Packages/com.example.awesomegame/Runtime/CapsuleClicker.cs' does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
-```
-
-in the Console.
-
-This is some sort of bug in UdonSharp. Creating scripts in `/Assets` first seems to work around it.
+This some other bug in UdonSharp. Creating scripts in `/Assets` first and moving them seems to work around it.
 
 </details>
 :::
 
-## Step 6: Implementing the script
+## Step 7: Implementing the script
 
 First, let's add a namespace to the script, so it won't conflict with other packages:
 
@@ -267,7 +288,7 @@ namespace Com.Example.AwesomeGame
 
 Debug logging is good for you.
 
-## Step 7: Attach the Script and Reference
+## Step 8: Attach the Script and Reference
 
 <Steps>
 1. Select the "ScoreButton" capsule in the prefab hierarchy
@@ -275,7 +296,7 @@ Debug logging is good for you.
 3. In the script component, drag the root `MyAwesomeGame` object into the "Mugi Game" field.
 </Steps>
 
-## Step 8: Configure Game Settings
+## Step 9: Configure Game Settings
 
 <Steps>
 1. Select the root `MyAwesomeGame` object in the prefab hierarchy
@@ -287,7 +308,7 @@ Debug logging is good for you.
 
 We change these so when we're testing, we don't have to figure out multiplayer or wait 5 minutes for the game to end.
 
-## Step 9: Add your prefab to the Test Scene
+## Step 10: Add your prefab to the Test Scene
 
 <Steps>
 1. Navigate to `Packages/My Awesome Game/Samples`
@@ -298,7 +319,7 @@ We change these so when we're testing, we don't have to figure out multiplayer o
 
 You should see the scoreboard and your capsule visible now. Move it to (0,0,0) if it's not.
 
-## Step 10: Test Your Game in Play Mode
+## Step 11: Test Your Game in Play Mode
 
 <Steps>
 1. Enter Play Mode in Unity.
@@ -312,7 +333,7 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 9. Exit Play Mode.
 </Steps>
 
-## Step 11: Submit Your Game
+## Step 12: Submit Your Game
 
 <Steps>
 1. Open your package's `package.json` file in a text editor.
@@ -335,7 +356,7 @@ It's fine to submit things to the server to test that it works. We'll filter out
 :::
 
 
-## Step 12: Upload and Test in VRChat (Optional)
+## Step 13: Upload and Test in VRChat (Optional)
 
 <Steps>
 1. Open the VRChat SDK window from VRChat SDK -> Show Control Panel.
