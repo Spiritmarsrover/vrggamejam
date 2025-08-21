@@ -109,7 +109,7 @@ Roughly, it keeps the code of your package isolated from the rest of the code in
 [UdonSharp] Script 'Packages/com.example.awesomegame/Runtime/CapsuleClicker.cs' does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
 ```
 
-I think this is a bug, but I can't tell for sure.
+I think this is a bug, but I can't tell for sure. The root cause is [this line in UdonSharp's compiler](https://github.com/MerlinVR/UdonSharp/blob/1fee37795f935c0417ebe71f9632c2358751fba2/Packages/com.merlin.UdonSharp/Editor/Compiler/Udon/CompilerUdonInterface.cs#L160-L161), which requires the filename and assembly name to match exactly.
 </details>
 :::
 
