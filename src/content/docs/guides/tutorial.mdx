@@ -38,7 +38,7 @@ This tutorial assumes you have [VCC (VRChat Creator Companion)](https://vcc.docs
 
 ### Investigate the project structure
 
-While it's loading, check out the project structure in your file browser. The important parts look like:
+While it's loading, check out the project structure in your file browser. The important parts look like (along with some `.meta` files):
 
 import { FileTree } from "@astrojs/starlight/components";
 
@@ -50,8 +50,8 @@ import { FileTree } from "@astrojs/starlight/components";
   - com.example.jamgame
     - manifest.json
     - Runtime
-      - asmdef.asmdef
-      - asmdef.asset
+      - com.example.jamgame.asmdef
+      - UdonSharpAssemblyDefinition.asset
     - Samples
       - GameTestWorld.unity
       - ...
