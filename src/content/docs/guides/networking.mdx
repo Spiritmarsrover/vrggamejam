@@ -1,0 +1,604 @@
+---
+title: Networking
+description: tips on networking/synchronization in Udon
+---
+
+This page has some tips on dealing with multiplayer networking and synchronization in Udon. It's an odd combination of conceptual pedagogy and practical advice. Hopefully you'll get something out of it.
+
+## Prerequisites
+
+You should understand the basics of Unity, VRChat's World SDK, and Udon first. See [Creating Your First World](https://creators.vrchat.com/worlds/creating-your-first-world/) if you don't.
+
+VRChat's own [Networking documentation](https://creators.vrchat.com/worlds/udon/networking/) is actually okay too. It's worth reading or at least skimming through before/during/after reading this page. 
+
+:::tip
+Networking is a broad topic. It's best to read a whole bunch of guides rather than focusing on just one, and come back to them more than once. Eventually the concepts will start to click.
+:::
+
+## Single-player
+
+Stuff in Udon behaviors is single-player by default, a.k.a. local only/unsynced. Given a simple interact counter (e.g. attached to a capsule):
+
+```csharp title="CounterBehavior.cs"
+using UdonSharp;
+using UnityEngine;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    public int counter = 0;
+    
+    public override void Interact()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+}
+```
+
+Each player can click the capsule and increment the counter but they'll each have their own counter value. They won't see each other's clicks.
+
+This may be obvious, but depending on your background (with e.g. other game programming environments) it might not be. Notably, some things are already "automatically synchronized", like the fact the behavior shows up on every player's client in the first place. This is because you (the world/prefab dev) added it to the scene. However, the `counter` field is not synchronized.
+
+## Continuous Synchronization
+
+You can start to share the fate of behaviors between players with "synced variables". In UdonSharp it looks like:
+
+```csharp title="CounterBehavior.cs" ins="[UdonSynced]"
+using UdonSharp;
+using UnityEngine;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+}
+```
+
+When you load this in your world, you'll notice that:
+
+- The first player to join the world can increment the counter
+- All other players can see the counter incrementing. But, they can't increment it themselves no matter how much they click.
+- If the first player leaves, the second player can now increment it. The counter also stays where it is (doesn't reset back to 0)
+- If a player joins after the counter has already been incremented, they see the same counter as everyone else.
+
+Again depending on your background, this might be obvious, and perhaps more obvious than the "single-player" behavior it had before. If the capsule shows up for everyone in the first place, why shouldn't the counter also show the same for everyone?
+
+### VRC Object Sync Component
+
+Another example of the "obvious" synchronization is if you make a new capsule, add the `VRC Pickup` component to it (so people can pick it up), and then add the `VRC Object Sync` component, everyone will also see the pickup in the same place in the world, regardless of who grabs it and moves it.
+
+VRC Object Sync sort of does the same thing as `[UdonSynced]` for the position and orientation of objects. `VRC Pickup` also does something special though: it sets the gameObject's Owner to whoever picked it up.
+
+## Ownership
+
+Each GameObject that interacts with Udon's synchronization has an owner, which is the only player that can change any `[UdonSynced]` fields. All objects start off owned by the first person that joins an instance, i.e. the instance master. The owner of a gameObject is also one of the things automatically synchronized by udon itself, i.e. every player's client knows who owns every gameObject and they agree on the owner.
+
+You can change the owner of an object at will:
+
+```csharp title="CounterBehavior.cs" ins={3,11}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+}
+```
+
+Now, when you load this in a world, you'll notice that:
+
+- Anyone can click the capsule and increment the counter.
+- Everyone still sees the same counter value.
+- However, the first click by each person sometimes doesn't register. If multiple people try to click the counter rapidly, most of the clicks don't register.
+
+So it's now a lot closer to the the `VRC Object Sync` case. However, just like multiple people trying to grab the same pickup, multiple people can't really interact with the same counter well.
+
+## Network Events
+
+For the increment counter case, you can work around this by using a different form of networking/synchronization:
+
+```csharp title="CounterBehavior.cs" ins={4,12,15-19}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+}
+```
+
+Now, you'll notice that:
+
+- Anyone can click the capsule and increment the counter, even at the same time.
+- Everyone still sees the same counter value.
+- Each person can only click the capsule about 5 times a second.
+
+`SendCustomNetworkEvent` gives you a way to run code only on the owner of a game object, even if it's triggered from another player. By default, it's also rate-limited to 5 events per second/client though.
+
+Note that the `counter` variable is still `[UdonSynced]` however. So we're still subject to that system.
+
+### Broadcast Events
+
+You can also send network events to everyone, a.k.a a broadcast:
+
+```csharp title="CounterBehavior.cs" ins={12} del="[UdonSynced] "
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.All, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+}
+```
+
+Note we also took off the `[UdonSynced]` attribute from the `counter` field (else this'll act weird).
+
+Now you'll notice that:
+
+- Everyone can click the capsule and increment the counter, even at the same time.
+- Everyone sees the same counter value, if they were in the instance before everyone started clicking.
+- If they join late, their counter value will start at 0, but it will increment along with everyone else's.
+
+The late join behavior is probably not what you want for this counter example. However, it is sometimes what you want in networking, vs the behavior of `[UdonSynced]`.
+
+## Detecting Changes
+
+Let's say you want to show some effect when the counter first hits 10. You might first think implement this like:
+
+```csharp title="CounterBehavior.cs" ins={19-22}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+        if (counter >= 10)
+        {
+            Debug.Log("Over 10!"); // or show particles/play a sound
+        }
+    }
+}
+```
+
+If you run this you'll notice that:
+
+- If the button is clicked the button 10 times, they'll see the effect.
+- Nobody else will.
+
+To fix this, there are several ways to go about it. The easiest is using Broadcast events:
+
+### Broadcast Changes
+
+```csharp title="CounterBehavior.cs" ins={19-23,26-30}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+        if (counter == 10)
+        {
+            // Broadcast the milestone effect to everyone
+            SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowMilestoneEffect));
+        }
+    }
+    
+    public void ShowMilestoneEffect()
+    {
+        Debug.Log("Over 10!");
+        // You could trigger visual effects, sounds, etc. here
+    }
+}
+```
+
+Now:
+
+- Everyone will see the effect if they're there when it happens.
+- Late joiners will see a counter over 10, but no effect.
+
+This is also sometimes exactly what you want. 
+
+## Late Joiner Change Detection
+
+Sometimes you do need something to happen even for late joiners, e.g. in addition to an effect, a door appears once you click 10 times. You can implement this like:
+
+```csharp title="CounterBehavior.cs" ins={9,22-28}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    public GameObject door; // Assign this in the inspector
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        Debug.Log($"Counter: {counter}");
+    }
+    
+    void Update()
+    {
+        if (counter >= 10)
+        {
+            door.SetActive(true);
+        }
+    }
+}
+```
+
+Now:
+
+- As soon as the counter hits 10, the door will appear.
+- If somebody joins late, they'll also see the door appear.
+
+This usually works. However, `Update()` checks are expensive. They run every frame. 
+
+### More Efficient Change Detection
+
+You can reduce the amount of work done in `Update()` like:
+
+```csharp title="CounterBehavior.cs" ins={10,11,21-24,30-34}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    public GameObject door; 
+    [UdonSynced] public bool doorActive = false;
+    private bool lastKnownDoorActive = false;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        if (counter >= 10 && !doorActive)
+        {
+            doorActive = true;
+        }
+    }
+    
+    void Update()
+    {
+        // Only do work when the door state actually changes
+        if (doorActive != lastKnownDoorActive)
+        {
+            door.SetActive(doorActive);
+            lastKnownDoorActive = doorActive;
+        }
+    }
+}
+```
+
+However, even simple Udon Update() checks are still pretty expensive. While you can reduce this further with [the `SlowUpdate` pattern](/guides/optimization#slowupdate), it'd be better if you can only bother checking when things change though.
+
+## Manual Sync
+
+For slowly changing variables like `doorActive`, you can use the `Manual` sync mode. It does require more setup:
+
+```csharp title="CounterBehavior.cs" ins={6,25,28-33}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    [UdonSynced] public bool doorActive = false;
+    public GameObject door;
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        if (counter >= 10 && !doorActive)
+        {
+            doorActive = true;
+        }
+        RequestSerialization();
+    }
+    
+    public override void OnDeserialization()
+    {
+        // This runs when synced variables change
+        door.SetActive(doorActive);
+        Debug.Log($"Synced counter: {counter}, door active: {doorActive}");
+    }
+}
+```
+
+Whenever you change a synced variable, you have to call `RequestSerialization()` now. However, the variables will then only change when `OnDeserialization()` is called, so you don't need an update loop. If nobody is clicking the button, then nothing needs to run. Late joiners will also get `OnDeserialization()` called, so they'll correctly see the door enabled too.
+
+:::caution
+You'll notice that you can also change the Sync Mode of a behavior on the inspector (Continuous/Manual/None), rather than add the `[UdonBehaviorSyncMode]` attribute. You should add the attribute instead. Most behaviors only work well in one of the modes, and if you leave it to the inspector, you'll forget about it and set it wrong.
+:::
+
+### Detecting Specific Variable Changes
+
+`OnDeserialization()` runs whenever any variable changes. So for our example above, it also runs whenever the counter updates, even though we only care about the `doorEnabled` field. You can run code only when a specific field changes with the [`FieldChangeCallback`](https://udonsharp.docs.vrchat.com/udonsharp/#fieldchangecallback):
+
+```csharp title="CounterBehavior.cs" ins={12-24}
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class CounterBehavior : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+    public GameObject door;
+    
+    [UdonSynced, FieldChangeCallback(nameof(DoorActive))]
+    private bool _doorActive = false;
+    
+    public bool DoorActive
+    {
+        get => _doorActive;
+        set
+        {
+            _doorActive = value;
+            // also update the door gameobject
+            door.SetActive(DoorActive);
+        }
+    }
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
+    }
+    
+    public void IncrementScore()
+    {
+        counter++;
+        if (counter >= 10 && !DoorActive)
+        {
+            DoorActive = true;
+        }
+        RequestSerialization();
+    }
+}
+```
+
+Roughly, the `set` part of the `DoorActive` property will get called whenever it changes, so you can put other stuff in there (besides setting the underlying `_doorActive` field).
+
+## Per-player variables
+
+Sometimes you need stuff is still synchronized but every player has their own stuff. E.g. a score. In this case, the ownership system will fight you (only one owner per object). There are a couple ways to handle this.
+
+### Network Parameters
+
+Custom network events can also have parameters. You can use this to associate events with a player, while still sending events to a single owner. E.g. if you want to keep track of clicks per player. You can do this like:
+
+```csharp title="PerPlayerCounter.cs"
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+using VRC.SDK3.Data;
+using VRC.Udon.Common.Interfaces;
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class PerPlayerCounter : UdonSharpBehaviour
+{
+    [UdonSynced] private string playerCountersJson = "{}";
+    private DataDictionary playerCounters = new DataDictionary(); // playerId -> count
+    
+    public override void Interact()
+    {
+        SendCustomNetworkEvent(
+            NetworkEventTarget.Owner,
+            nameof(IncrementPlayerCount),
+            Networking.LocalPlayer.playerId);
+    }
+    
+    [NetworkCallable]
+    public void IncrementPlayerCount(int playerId)
+    {
+        if (!Networking.IsOwner(gameObject)) return;
+        
+        // Get current count for this player
+        int currentCount = 0;
+        if (playerCounters.TryGetValue(playerId, out DataToken token))
+        {
+            currentCount = token.Int;
+        }
+        
+        // Increment and store
+        playerCounters[playerId] = currentCount + 1;
+        
+        // Log total for all players
+        int totalCount = 0;
+        foreach (var key in playerCounters.GetKeys().ToArray())
+        {
+            if (playerCounters.TryGetValue(key, out DataToken countToken))
+            {
+                totalCount += countToken.Int;
+            }
+        }
+        Debug.Log($"Player {playerId} clicked (total: {currentCount + 1}). Overall total: {totalCount}");
+        
+        RequestSerialization();
+    }
+    
+    public override void OnPreSerialization()
+    {
+        // Serialize dictionary to JSON for syncing
+        if (VRCJson.TrySerializeToJson(playerCounters, JsonExportType.Minify, out DataToken result))
+        {
+            playerCountersJson = result.String;
+        }
+    }
+    
+    public override void OnDeserialization()
+    {
+        // Deserialize JSON back to dictionary
+        if (VRCJson.TryDeserializeFromJson(playerCountersJson, out DataToken result))
+        {
+            playerCounters = result.DataDictionary;
+        }
+        else
+        {
+            playerCounters = new DataDictionary(); // Fallback to empty dictionary
+        }
+    }
+}
+```
+
+There is a lot going on here, due to udon limitations. The [`DataDictionary`](https://creators.vrchat.com/worlds/udon/data-containers/data-dictionaries) stores clicks per player id, but you have to serialize through [`VRCJSON`](https://creators.vrchat.com/worlds/udon/data-containers/vrcjson/) to use with `[UdonSynced]` unfortunately. The meat of the networking is with the extra `playerId` parameter though, so when the master updates the dictionary, it knows how to associate the click. Every client can still see the per-player click counters though.
+
+:::tip
+[Mugi](/mugi) uses this approach to keep track of player scores, if you want to see a more worked example.
+:::
+
+### Player Objects
+
+The other way to do this is to give each player ownership over a separate GameObject/behavior; they can then update whatever they want, and everyone else will see their synced fields. This has historically been tricky to set up. Recently, VRChat has added [PlayerObjects](https://creators.vrchat.com/worlds/udon/persistence/player-object/), which reduces some of the complexity (and adds its own to the mix). Roughly, you'll create a new UdonBehavior:
+
+```csharp title="PlayerCounter.cs"
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+public class PlayerCounter : UdonSharpBehaviour
+{
+    [UdonSynced] public int counter = 0;
+}
+```
+
+Attach this behavior to a gameObject, then also attach the `VRC Player Object` behavior.
+
+VRChat will clone the player object automatically for every player and give them ownership. If a player leaves, their player object will go away too.
+
+Now back in the other behavior, you can access they player objects for each player:
+
+```csharp title="PlayerCounterManager.cs"
+using UdonSharp;
+using UnityEngine;
+using VRC.SDKBase;
+
+public class PlayerCounterManager : UdonSharpBehaviour
+{
+    public PlayerCounter referencePlayerCounter;
+
+    public override void Interact()
+    {
+        PlayerCounter myCounter = Networking.FindComponentInPlayerObjects(
+            Networking.LocalPlayer, referencePlayerCounter);
+        // increment our own counter
+        myCounter.counter++;
+
+        // Calculate total of all player counters
+        int totalCount = 0;
+        int playerCount = 0;
+        
+        VRCPlayerApi[] players = new VRCPlayerApi[VRCPlayerApi.GetPlayerCount()];
+        VRCPlayerApi.GetPlayers(players);
+        
+        foreach (VRCPlayerApi player in players)
+        {
+            if (player == null) continue;
+            
+            PlayerCounter theirCounter = Networking.FindComponentInPlayerObjects(
+                player, referencePlayerCounter);
+            if (theirCounter != null)
+            {
+                totalCount += playerCounter.counter;
+                playerCount++;
+            }
+        }
+        
+        Debug.Log($"Total clicks across {playerCount} players: {totalCount}");
+    }
+}
+```
+
+:::caution
+VRChat will duplicate your object for every single player in the instance. So be very careful with expensive stuff like `Update()` on the object. You can also use [Object Pools](https://creators.vrchat.com/worlds/udon/networking/network-components/#vrc-object-pool) and manually assign ownership, but they're also tricky and poorly documented.
+:::
+
+## Debugging
+
+Networking is hard, and even harder to test. VRChat has several (poor) ways to do it. VRChat's own [Network Debugging page](https://creators.vrchat.com/worlds/udon/networking/debugging) has some tips as well as [Launching Multiple Clients](https://creators.vrchat.com/worlds/udon/using-build-test/#launching-multiple-clients). I may add better details here later.

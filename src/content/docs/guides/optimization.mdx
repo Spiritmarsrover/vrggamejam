@@ -1,0 +1,112 @@
+---
+title: Optimization
+description: Performance tips for Udon behaviors
+---
+
+This page covers some practical optimization techniques for Udon.
+
+## SlowUpdate Pattern
+
+Sometimes you'll have a behavior with an `Update()` loop like:
+
+```csharp title="SomeBehavior.cs"
+using UdonSharp;
+using UnityEngine;
+
+public class SomeBehavior : UdonSharpBehaviour
+{
+    void Update()
+    {
+        Debug.Log("doing something expensive");
+    }
+}
+```
+
+`Update()` is unfortunately slow. Even if it looks simple, Udon runs ~1000x slower than the equivalent C# code.
+
+For periodic tasks that don't need frame-perfect timing, you can use the "SlowUpdate" pattern instead:
+
+```csharp title="SomeBehavior.cs"
+using UdonSharp;
+using UnityEngine;
+
+public class GameTimer : UdonSharpBehaviour
+{
+    private bool slowUpdateScheduled = false;
+    private float slowUpdateRate = 1f; // once a second
+    
+    public void SlowUpdate()
+    {
+        Debug.Log("doing something expensive");
+        if (slowUpdateScheduled)
+        {
+            SendCustomEventDelayedSeconds(nameof(SlowUpdate), slowUpdateRate);
+        }
+    }
+
+    // bookkeeping:
+    
+    void Start()
+    {
+        // Start the slow update cycle
+        if (!slowUpdateScheduled)
+        {
+            slowUpdateScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(SlowUpdate), slowUpdateRate);
+        }
+    }
+    
+    void OnEnable()
+    {
+        // Resume slow updates when re-enabled
+        if (!slowUpdateScheduled)
+        {
+            slowUpdateScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(SlowUpdate), slowUpdateRate);
+        }
+    }
+    
+    void OnDisable()
+    {
+        // Stop scheduling new updates when disabled
+        slowUpdateScheduled = false;
+    }
+    
+}
+```
+
+Now instead of running every frame, this runs once per second, whenever the behavior's gameObject is enabled.
+
+:::note
+[Mugi](/mugi) uses this pattern extensively, if you want to see a fully worked example.
+:::
+
+### Owner-Only Updates
+
+For networked behaviors, often only the owner needs to run the slow update:
+
+```csharp title="NetworkedSlowUpdate.cs"
+void OnEnable()
+{
+    if (Networking.IsOwner(gameObject) && !slowUpdateScheduled)
+    {
+        slowUpdateScheduled = true;
+        SendCustomEventDelayedSeconds(nameof(SlowUpdate), 1f);
+    }
+}
+
+public override void OnOwnershipTransferred(VRCPlayerApi player)
+{
+    // New owner should start slow updates
+    if (Networking.IsOwner(gameObject) && !slowUpdateScheduled)
+    {
+        slowUpdateScheduled = true;
+        SendCustomEventDelayedSeconds(nameof(SlowUpdate), 0.1f);
+    }
+    else
+    {
+        // No longer owner, stop slow updates
+        slowUpdateScheduled = false;
+    }
+}
+```
