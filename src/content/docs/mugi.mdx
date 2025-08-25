@@ -65,7 +65,7 @@ MugiScoreboard is another world-space 2d Canvas UI that shows the current scores
 
 MugiScoreboard is similarly optional, if you want to build your own way to show player scores and winners.
 
-### Networking and Ownership
+### Game Master
 
 MugiGame uses VRChat's networking system with a **Game Master** pattern:
 
@@ -80,6 +80,14 @@ When the Game Master leaves, MugiGame automatically promotes a new Game Master:
 2. **Priority 2**: Any remaining players in instance (lowest player ID)
 
 There's no current facility to voluntarily change the game master other than having all players leave the lobby and the new game master join first.
+
+### Networking
+
+The game state, start time (and thus time remaining) and player/team state is synchronized, as well as the [callbacks](#callback-system). All players (including players in the instance but not in the lobby) should see the same basic information about your game.
+
+:::caution
+Any other state for your game needs to be synchronized yourself. See the [Networking guide](/guides/networking) for more info on how to deal with this, as well as [VRChat's own Networking docs](https://creators.vrchat.com/worlds/udon/networking/).
+:::
 
 ### Game Lifecycle
 
@@ -212,7 +220,11 @@ mugiGame.RequestJoinTeam(player.playerId, teamIndex);
 
 ### Callback System
 
-Mugi can call public methods on arbitrary UdonBehaviors at different points of the game lifecycle. To register callbacks, add your UdonBehavior to the appropriate array field on the MugiGame component, e.g. by dragging the gameobject into the inspector.
+Mugi can call public methods on arbitrary UdonBehaviors at different points of the game lifecycle. To register callbacks, add your UdonBehavior to the appropriate array field on the MugiGame component, e.g. by dragging the gameobject into the inspector. These callbacks run on all clients (i.e. they are synchronized across the network).
+
+:::tip
+If you just want some gameobjects to only be enabled while the game is running, see [Lifecycle GameObjects](#lifecycle-gameobjects).
+:::
 
 #### Event Methods
 
@@ -224,6 +236,10 @@ Mugi can call public methods on arbitrary UdonBehaviors at different points of t
 | `OnMugiPlayerJoin` | Player joins the lobby | Handle new player setup, access player info via MugiGame API |
 | `OnMugiPlayerLeave` | Player leaves (disconnection or manual) | Handle any player-specific cleanup |
 | `OnMugiTimeWarning` | Once when 30 seconds remain | "Hurry up" effects or warnings |
+
+:::note
+Callbacks are called only once, when the game transitions between states. E.g. if a player joins an instance halfway through a game, they won't have OnMugiStart called. If you need this sort of "catchup" behavior, you may have to poll the MugiGame state yourself.
+:::
 
 #### Example Implementation
 
@@ -249,6 +265,11 @@ public class MyGameBehavior : UdonSharpBehaviour
     }
 }
 ```
+
+### Lifecycle Gameobjects
+
+Mugi can also automatically enable and disable GameObjects when the game is in the `Running` state. Add your gameobjects to the `Enable During Game` array on the `MugiGame` behavior. The gameobjects will be enabled for all players, including those outside the game.
+
 
 ## I scrolled all the way through your dumb readme, where da anime grills at?
 
