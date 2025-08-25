@@ -70,12 +70,14 @@ MugiScoreboard is similarly optional, if you want to build your own way to show 
 MugiGame uses VRChat's networking system with a **Game Master** pattern:
 
 **Game Master Role:**
+
 - The first player to join becomes the Game Master (owner of the MugiGame object)
 - Only the Game Master can start/stop games and process score changes
 - Game Master handles all networked state changes and validation
 
 **Ownership Transfer:**
 When the Game Master leaves, MugiGame automatically promotes a new Game Master:
+
 1. **Priority 1**: Active game players (lowest player ID)
 2. **Priority 2**: Any remaining players in instance (lowest player ID)
 
@@ -228,14 +230,14 @@ If you just want some gameobjects to only be enabled while the game is running, 
 
 #### Event Methods
 
-| Method Name | When Called | Use For |
-|--------|-------------|---------|
-| `OnMugiCountdown` | Game enters countdown state | Setup like teleporting players or enabling expensive behaviors |
-| `OnMugiStart` | Gameplay begins (after countdown) | Game timer starts here, initialize game mechanics |
-| `OnMugiEnd` | Game finishes (timer expired or manual end) | Cleanup and result processing |
-| `OnMugiPlayerJoin` | Player joins the lobby | Handle new player setup, access player info via MugiGame API |
-| `OnMugiPlayerLeave` | Player leaves (disconnection or manual) | Handle any player-specific cleanup |
-| `OnMugiTimeWarning` | Once when 30 seconds remain | "Hurry up" effects or warnings |
+| Method Name         | When Called                                 | Use For                                                        |
+| ------------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| `OnMugiCountdown`   | Game enters countdown state                 | Setup like teleporting players or enabling expensive behaviors |
+| `OnMugiStart`       | Gameplay begins (after countdown)           | Game timer starts here, initialize game mechanics              |
+| `OnMugiEnd`         | Game finishes (timer expired or manual end) | Cleanup and result processing                                  |
+| `OnMugiPlayerJoin`  | Player joins the lobby                      | Handle new player setup, access player info via MugiGame API   |
+| `OnMugiPlayerLeave` | Player leaves (disconnection or manual)     | Handle any player-specific cleanup                             |
+| `OnMugiTimeWarning` | Once when 30 seconds remain                 | "Hurry up" effects or warnings                                 |
 
 :::note
 Callbacks are called only once, when the game transitions between states. E.g. if a player joins an instance halfway through a game, they won't have OnMugiStart called. If you need this sort of "catchup" behavior, you may have to poll the MugiGame state yourself.
@@ -269,7 +271,6 @@ public class MyGameBehavior : UdonSharpBehaviour
 ### Lifecycle Gameobjects
 
 Mugi can also automatically enable and disable GameObjects when the game is in the `Running` state. Add your gameobjects to the `Enable During Game` array on the `MugiGame` behavior. The gameobjects will be enabled for all players, including those outside the game.
-
 
 ## I scrolled all the way through your dumb readme, where da anime grills at?
 

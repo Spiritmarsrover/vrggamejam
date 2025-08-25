@@ -1,24 +1,24 @@
 :root {
-    --sl-font-system: "Times New Roman", serif;
+  --sl-font-system: "Times New Roman", serif;
 
-    /*  fix table width  https://github.com/withastro/starlight/issues/1321 */
-    .sl-markdown-content :is(th, td):not(:where(.not-content *)) > code {
-        overflow-wrap: normal;
-    }
+  /*  fix table width  https://github.com/withastro/starlight/issues/1321 */
+  .sl-markdown-content :is(th, td):not(:where(.not-content *)) > code {
+    overflow-wrap: normal;
+  }
 }
 
 :root[data-theme="dark"] {
-    --sl-color-bg-sidebar: transparent;
-    --sl-color-black: black;
-    --sl-color-bg-nav: var(--sl-color-black);
+  --sl-color-bg-sidebar: transparent;
+  --sl-color-black: black;
+  --sl-color-bg-nav: var(--sl-color-black);
 
-    body {
-        background: url(/bgreenplates4.gif);
-    }
+  body {
+    background: url(/bgreenplates4.gif);
+  }
 }
 :root[data-theme="light"] {
-    --sl-color-bg-sidebar: transparent;
-    body {
-        background: url(/bgfrenchfeathers.jpeg);
-    }
+  --sl-color-bg-sidebar: transparent;
+  body {
+    background: url(/bgfrenchfeathers.jpeg);
+  }
 }

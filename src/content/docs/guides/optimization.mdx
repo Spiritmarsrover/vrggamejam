@@ -34,7 +34,7 @@ public class GameTimer : UdonSharpBehaviour
 {
     private bool slowUpdateScheduled = false;
     private float slowUpdateRate = 1f; // once a second
-    
+
     public void SlowUpdate()
     {
         Debug.Log("doing something expensive");
@@ -45,7 +45,7 @@ public class GameTimer : UdonSharpBehaviour
     }
 
     // bookkeeping:
-    
+
     void Start()
     {
         // Start the slow update cycle
@@ -55,7 +55,7 @@ public class GameTimer : UdonSharpBehaviour
             SendCustomEventDelayedSeconds(nameof(SlowUpdate), slowUpdateRate);
         }
     }
-    
+
     void OnEnable()
     {
         // Resume slow updates when re-enabled
@@ -65,13 +65,13 @@ public class GameTimer : UdonSharpBehaviour
             SendCustomEventDelayedSeconds(nameof(SlowUpdate), slowUpdateRate);
         }
     }
-    
+
     void OnDisable()
     {
         // Stop scheduling new updates when disabled
         slowUpdateScheduled = false;
     }
-    
+
 }
 ```
 

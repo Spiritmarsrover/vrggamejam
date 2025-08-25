@@ -9,7 +9,7 @@ This page has some tips on dealing with multiplayer networking and synchronizati
 
 You should understand the basics of Unity, VRChat's World SDK, and Udon first. See [Creating Your First World](https://creators.vrchat.com/worlds/creating-your-first-world/) if you don't.
 
-VRChat's own [Networking documentation](https://creators.vrchat.com/worlds/udon/networking/) is actually okay too. It's worth reading or at least skimming through before/during/after reading this page. 
+VRChat's own [Networking documentation](https://creators.vrchat.com/worlds/udon/networking/) is actually okay too. It's worth reading or at least skimming through before/during/after reading this page.
 
 :::tip
 Networking is a broad topic. It's best to read a whole bunch of guides rather than focusing on just one, and come back to them more than once. Eventually the concepts will start to click.
@@ -26,7 +26,7 @@ using UnityEngine;
 public class CounterBehavior : UdonSharpBehaviour
 {
     public int counter = 0;
-    
+
     public override void Interact()
     {
         counter++;
@@ -50,7 +50,7 @@ using UnityEngine;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         counter++;
@@ -88,7 +88,7 @@ using VRC.SDKBase;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         Networking.SetOwner(Networking.LocalPlayer, gameObject);
@@ -119,12 +119,12 @@ using VRC.Udon.Common.Interfaces;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -156,12 +156,12 @@ using VRC.Udon.Common.Interfaces;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.All, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -193,12 +193,12 @@ using VRC.Udon.Common.Interfaces;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -229,12 +229,12 @@ using VRC.Udon.Common.Interfaces;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -245,7 +245,7 @@ public class CounterBehavior : UdonSharpBehaviour
             SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ShowMilestoneEffect));
         }
     }
-    
+
     public void ShowMilestoneEffect()
     {
         Debug.Log("Over 10!");
@@ -259,7 +259,7 @@ Now:
 - Everyone will see the effect if they're there when it happens.
 - Late joiners will see a counter over 10, but no effect.
 
-This is also sometimes exactly what you want. 
+This is also sometimes exactly what you want.
 
 ## Late Joiner Change Detection
 
@@ -275,18 +275,18 @@ public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
     public GameObject door; // Assign this in the inspector
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
         Debug.Log($"Counter: {counter}");
     }
-    
+
     void Update()
     {
         if (counter >= 10)
@@ -302,7 +302,7 @@ Now:
 - As soon as the counter hits 10, the door will appear.
 - If somebody joins late, they'll also see the door appear.
 
-This usually works. However, `Update()` checks are expensive. They run every frame. 
+This usually works. However, `Update()` checks are expensive. They run every frame.
 
 ### More Efficient Change Detection
 
@@ -317,15 +317,15 @@ using VRC.Udon.Common.Interfaces;
 public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
-    public GameObject door; 
+    public GameObject door;
     [UdonSynced] public bool doorActive = false;
     private bool lastKnownDoorActive = false;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -334,7 +334,7 @@ public class CounterBehavior : UdonSharpBehaviour
             doorActive = true;
         }
     }
-    
+
     void Update()
     {
         // Only do work when the door state actually changes
@@ -365,12 +365,12 @@ public class CounterBehavior : UdonSharpBehaviour
     [UdonSynced] public int counter = 0;
     [UdonSynced] public bool doorActive = false;
     public GameObject door;
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -380,7 +380,7 @@ public class CounterBehavior : UdonSharpBehaviour
         }
         RequestSerialization();
     }
-    
+
     public override void OnDeserialization()
     {
         // This runs when synced variables change
@@ -411,10 +411,10 @@ public class CounterBehavior : UdonSharpBehaviour
 {
     [UdonSynced] public int counter = 0;
     public GameObject door;
-    
+
     [UdonSynced, FieldChangeCallback(nameof(DoorActive))]
     private bool _doorActive = false;
-    
+
     public bool DoorActive
     {
         get => _doorActive;
@@ -425,12 +425,12 @@ public class CounterBehavior : UdonSharpBehaviour
             door.SetActive(DoorActive);
         }
     }
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(IncrementScore));
     }
-    
+
     public void IncrementScore()
     {
         counter++;
@@ -465,7 +465,7 @@ public class PerPlayerCounter : UdonSharpBehaviour
 {
     [UdonSynced] private string playerCountersJson = "{}";
     private DataDictionary playerCounters = new DataDictionary(); // playerId -> count
-    
+
     public override void Interact()
     {
         SendCustomNetworkEvent(
@@ -473,22 +473,22 @@ public class PerPlayerCounter : UdonSharpBehaviour
             nameof(IncrementPlayerCount),
             Networking.LocalPlayer.playerId);
     }
-    
+
     [NetworkCallable]
     public void IncrementPlayerCount(int playerId)
     {
         if (!Networking.IsOwner(gameObject)) return;
-        
+
         // Get current count for this player
         int currentCount = 0;
         if (playerCounters.TryGetValue(playerId, out DataToken token))
         {
             currentCount = token.Int;
         }
-        
+
         // Increment and store
         playerCounters[playerId] = currentCount + 1;
-        
+
         // Log total for all players
         int totalCount = 0;
         foreach (var key in playerCounters.GetKeys().ToArray())
@@ -499,10 +499,10 @@ public class PerPlayerCounter : UdonSharpBehaviour
             }
         }
         Debug.Log($"Player {playerId} clicked (total: {currentCount + 1}). Overall total: {totalCount}");
-        
+
         RequestSerialization();
     }
-    
+
     public override void OnPreSerialization()
     {
         // Serialize dictionary to JSON for syncing
@@ -511,7 +511,7 @@ public class PerPlayerCounter : UdonSharpBehaviour
             playerCountersJson = result.String;
         }
     }
-    
+
     public override void OnDeserialization()
     {
         // Deserialize JSON back to dictionary
@@ -573,14 +573,14 @@ public class PlayerCounterManager : UdonSharpBehaviour
         // Calculate total of all player counters
         int totalCount = 0;
         int playerCount = 0;
-        
+
         VRCPlayerApi[] players = new VRCPlayerApi[VRCPlayerApi.GetPlayerCount()];
         VRCPlayerApi.GetPlayers(players);
-        
+
         foreach (VRCPlayerApi player in players)
         {
             if (player == null) continue;
-            
+
             PlayerCounter theirCounter = Networking.FindComponentInPlayerObjects(
                 player, referencePlayerCounter);
             if (theirCounter != null)
@@ -589,7 +589,7 @@ public class PlayerCounterManager : UdonSharpBehaviour
                 playerCount++;
             }
         }
-        
+
         Debug.Log($"Total clicks across {playerCount} players: {totalCount}");
     }
 }

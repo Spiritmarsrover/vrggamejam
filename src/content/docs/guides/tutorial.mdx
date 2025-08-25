@@ -91,8 +91,8 @@ If you look in the Console of Unity and see a bunch of errors, don't despair. Th
 <Steps>
 
 1. In the Runtime folder of your package, notice the `com.example.jamgame` Assembly Definition file:
-    ![screenshot of the asmdef](tutorial-img/asmdef.png)
-    (in the file browser, its extension is `.asmdef`).
+   ![screenshot of the asmdef](tutorial-img/asmdef.png)
+   (in the file browser, its extension is `.asmdef`).
 2. Rename the file to `com.example.awesomegame` to match the overall package.
 3. In the inspector for the file, also rename it to `com.example.awesomegame`.
    ![screenshot of the asmdef inspector](tutorial-img/asmdef-inspector.png)
@@ -100,6 +100,7 @@ If you look in the Console of Unity and see a bunch of errors, don't despair. Th
 </Steps>
 
 :::note[Aside]{icon="puzzle"}
+
 <details>
 <summary>What's the Assembly Definition for? Why do you have to rename it in two places?</summary>
 
@@ -110,6 +111,7 @@ Roughly, it keeps the code of your package isolated from the rest of the code in
 ```
 
 I think this is a bug, but I can't tell for sure. The root cause is [this line in UdonSharp's compiler](https://github.com/MerlinVR/UdonSharp/blob/1fee37795f935c0417ebe71f9632c2358751fba2/Packages/com.merlin.UdonSharp/Editor/Compiler/Udon/CompilerUdonInterface.cs#L160-L161), which requires the filename and assembly name to match exactly.
+
 </details>
 :::
 
@@ -120,8 +122,8 @@ I think this is a bug, but I can't tell for sure. The root cause is [this line i
 1. In the Project window, navigate to `Packages/Awesome VR Game/Runtime`
 2. Right Click in the window and click `Create -> Mugi -> Mugi Game Variant`.
 3. Save the new prefab as `MyAwesomeGame.prefab`.
-2. Double-click `MyAwesomeGame.prefab` to open it in prefab editing mode
-3. This prefab contains the MugiGame framework components at the root.
+4. Double-click `MyAwesomeGame.prefab` to open it in prefab editing mode
+5. This prefab contains the MugiGame framework components at the root.
 
 </Steps>
 
@@ -145,26 +147,28 @@ Now we'll add some behavior.
 2. Right-click and create `Create > U# Script`
 3. Name it `CapsuleClicker`.
 4. In the Project window, see that it created a `CapsuleClicker.cs` and a `CapsuleClicker.asset` beside it (you may see two different icons instead of extensions).
-4. Move both the new `CapsuleClicker.cs` and `CapsuleClicker.asset` into your `Packages/Awesome VR Game/Runtime` directory.
-5. Open the script. The default script looks like:
-    ```csharp title=CapsuleClicker.cs
-    using UdonSharp;
-    using UnityEngine;
-    using VRC.SDKBase;
-    using VRC.Udon;
+5. Move both the new `CapsuleClicker.cs` and `CapsuleClicker.asset` into your `Packages/Awesome VR Game/Runtime` directory.
+6. Open the script. The default script looks like:
 
-    public class CapsuleClicker : UdonSharpBehaviour
-    {
-        void Start()
-        {
+   ```csharp title=CapsuleClicker.cs
+   using UdonSharp;
+   using UnityEngine;
+   using VRC.SDKBase;
+   using VRC.Udon;
 
-        }
-    }
-    ```
+   public class CapsuleClicker : UdonSharpBehaviour
+   {
+       void Start()
+       {
+
+       }
+   }
+   ```
 
 </Steps>
 
 :::note[Aside]{icon="puzzle"}
+
 <details>
 <summary>Why do you have to create the U# Script in `Assets` and move it?</summary>
 
@@ -293,19 +297,17 @@ Debug logging is good for you.
 ## Step 8: Attach the Script and Reference
 
 <Steps>
-1. Select the "ScoreButton" capsule in the prefab hierarchy
-2. Click "Add Component" and add your `CapsuleClicker` script
-3. In the script component, drag the root `MyAwesomeGame` object into the "Mugi Game" field.
+  1. Select the "ScoreButton" capsule in the prefab hierarchy 2. Click "Add
+  Component" and add your `CapsuleClicker` script 3. In the script component,
+  drag the root `MyAwesomeGame` object into the "Mugi Game" field.
 </Steps>
 
 ## Step 9: Configure Game Settings
 
 <Steps>
-1. Select the root `MyAwesomeGame` object in the prefab hierarchy
-2. In the `MugiGame` component, configure:
-   - **Game Time Limit**: 30 seconds (default 300)
-   - **Min Players**: 1 (default 2)
-3. Save the prefab.
+  1. Select the root `MyAwesomeGame` object in the prefab hierarchy 2. In the
+  `MugiGame` component, configure: - **Game Time Limit**: 30 seconds (default
+  300) - **Min Players**: 1 (default 2) 3. Save the prefab.
 </Steps>
 
 We change these so when we're testing, we don't have to figure out multiplayer or wait 5 minutes for the game to end.
@@ -313,10 +315,10 @@ We change these so when we're testing, we don't have to figure out multiplayer o
 ## Step 10: Add your prefab to the Test Scene
 
 <Steps>
-1. Navigate to `Packages/My Awesome Game/Samples`
-2. Open the `GameTestWorld.unity` scene.
-3. Navigate to the `Packages/My Awesome Game/Runtime` in the browser.
-4. Drag your `MyAwesomeGame` prefab into the scene.
+  1. Navigate to `Packages/My Awesome Game/Samples` 2. Open the
+  `GameTestWorld.unity` scene. 3. Navigate to the `Packages/My Awesome
+  Game/Runtime` in the browser. 4. Drag your `MyAwesomeGame` prefab into the
+  scene.
 </Steps>
 
 You should see the scoreboard and your capsule visible now. Move it to (0,0,0) if it's not.
@@ -324,15 +326,12 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 ## Step 11: Test Your Game in Play Mode
 
 <Steps>
-1. Enter Play Mode in Unity.
-2. In the Game window, dismiss the Client Sim UI.
-3. Observe your capsule and the UI provided by Mugi.
-4. Join the game using the lobby UI.
-5. Start the game using the lobby UI.
-6. Click the capsule to increment your score
-7. Look in the Console, and see the log messages that say "Capsule Clicked" and "Score Incremented".
-8. Once the game ends, see your final score on the scoreboard.
-9. Exit Play Mode.
+  1. Enter Play Mode in Unity. 2. In the Game window, dismiss the Client Sim UI.
+  3. Observe your capsule and the UI provided by Mugi. 4. Join the game using
+  the lobby UI. 5. Start the game using the lobby UI. 6. Click the capsule to
+  increment your score 7. Look in the Console, and see the log messages that say
+  "Capsule Clicked" and "Score Incremented". 8. Once the game ends, see your
+  final score on the scoreboard. 9. Exit Play Mode.
 </Steps>
 
 ## Step 12: Submit Your Game
@@ -357,15 +356,13 @@ You should see the scoreboard and your capsule visible now. Move it to (0,0,0) i
 It's fine to submit things to the server to test that it works. We'll filter out any tutorial submissions.
 :::
 
-
 ## Step 13: Upload and Test in VRChat (Optional)
 
 <Steps>
-1. Open the VRChat SDK window from VRChat SDK -> Show Control Panel.
-2. Name the world "Awesome game test"
-3. Click "Capture in Scene" to make a thumbnail image.
-4. Click the "Build & Publish" button.
-5. Test the world with your friends (and/or alt accounts)
+  1. Open the VRChat SDK window from VRChat SDK -> Show Control Panel. 2. Name
+  the world "Awesome game test" 3. Click "Capture in Scene" to make a thumbnail
+  image. 4. Click the "Build & Publish" button. 5. Test the world with your
+  friends (and/or alt accounts)
 </Steps>
 
 ## Reflection
@@ -376,11 +373,11 @@ You now have a working game submitted to the jam, and a demo world!
 
 Check out the [Mugi docs](/mugi) to see what else you can do with the framework. Also check out the [Resources](/resources) for more useful tips when making your real game.
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
-    <LinkCard title="Mugi Docs" href="/mugi" />
-    <LinkCard title="Resources" href="/resources" />
+  <LinkCard title="Mugi Docs" href="/mugi" />
+  <LinkCard title="Resources" href="/resources" />
 </CardGrid>
 
 ## Help! it didn't work!
